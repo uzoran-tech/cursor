@@ -11,8 +11,13 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/icon-180.png" />
     <title>BloodTrack — Your Lab Results, Tracked</title>
-    <script type="module" crossorigin src="./assets/index-CDMGmI_h.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-48zIbMK-.css">
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('bloodtrack.theme') || 'light'
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="./assets/index-Dm4pHEMG.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BDKKQSAX.css">
   </head>
   <body>
     <div id="root"></div>
