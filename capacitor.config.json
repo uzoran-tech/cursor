@@ -1,0 +1,9 @@
+{
+  "appId": "com.uzoran.folio",
+  "appName": "Folio",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#121212"
+  }
+}

@@ -28,6 +28,8 @@ body {
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 .app {
@@ -45,8 +47,10 @@ body {
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 0 24px;
-  height: 60px;
+  padding: env(safe-area-inset-top) 24px 0;
+  padding-left: max(24px, env(safe-area-inset-left));
+  padding-right: max(24px, env(safe-area-inset-right));
+  height: calc(60px + env(safe-area-inset-top));
   background: rgba(18, 18, 18, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
@@ -325,12 +329,15 @@ body {
   align-items: center;
   justify-content: center;
   overscroll-behavior: contain;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .flip-close {
   position: absolute;
-  top: 18px;
-  right: 22px;
+  top: calc(18px + env(safe-area-inset-top));
+  right: calc(22px + env(safe-area-inset-right));
   z-index: 10;
   width: 40px;
   height: 40px;
@@ -353,7 +360,7 @@ body {
   gap: 14px;
   width: min(860px, 94vw);
   height: 100%;
-  padding: 24px 0 16px;
+  padding: calc(24px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));
 }
 
 .page-frame {
