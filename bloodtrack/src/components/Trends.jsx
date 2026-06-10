@@ -1,5 +1,5 @@
 import { trackedMarkers, seriesFor } from '../store.js'
-import { PANELS, statusOf } from '../catalog.js'
+import { PANELS, PANEL_ICONS, statusOf } from '../catalog.js'
 import { Sparkline } from './Charts.jsx'
 
 export default function Trends({ reports, onOpenMarker }) {
@@ -12,16 +12,23 @@ export default function Trends({ reports, onOpenMarker }) {
         if (markers.length === 0) return null
         return (
           <section key={panel}>
-            <h3>{panel}</h3>
+            <h3>
+              <span className="h3-icon">{PANEL_ICONS[panel]}</span> {panel}
+            </h3>
             <div className="marker-grid">
-              {markers.map((m) => {
+              {markers.map((m, i) => {
                 const s = seriesFor(reports, m.id)
                 const latest = s[s.length - 1]
                 const st = statusOf(m, latest.value)
                 const first = s[0]
                 const delta = s.length > 1 && first.value !== 0 ? ((latest.value - first.value) / Math.abs(first.value)) * 100 : null
                 return (
-                  <button key={m.id} className="marker-card" onClick={() => onOpenMarker(m.id)}>
+                  <button
+                    key={m.id}
+                    className="marker-card"
+                    style={{ animationDelay: `${Math.min(i * 45, 360)}ms` }}
+                    onClick={() => onOpenMarker(m.id)}
+                  >
                     <div className="marker-card-head">
                       <span className="marker-name">{m.name}</span>
                       <span className={`badge ${st}`}>{st}</span>

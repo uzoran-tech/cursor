@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { rangeStats, buildInsights, sortByDate, seriesFor } from '../store.js'
 import { markerById } from '../catalog.js'
 import { Sparkline } from './Charts.jsx'
@@ -9,11 +10,18 @@ export default function Dashboard({ reports, onOpenMarker }) {
   const latest = sorted[sorted.length - 1]
   const pct = total ? Math.round((inRange / total) * 100) : 0
 
+  // Sweep the ring from 0 to the real value on mount.
+  const [shownPct, setShownPct] = useState(0)
+  useEffect(() => {
+    const t = setTimeout(() => setShownPct(pct), 60)
+    return () => clearTimeout(t)
+  }, [pct])
+
   return (
     <div className="dashboard">
       <section className="stat-row">
         <div className="stat-card big">
-          <div className="ring" style={{ '--pct': pct }}>
+          <div className="ring" style={{ '--pct': shownPct }}>
             <span>{pct}%</span>
           </div>
           <div>
@@ -35,7 +43,9 @@ export default function Dashboard({ reports, onOpenMarker }) {
 
       {flags.length > 0 && (
         <section>
-          <h3>Needs attention</h3>
+          <h3>
+            <span className="h3-icon">⚠️</span> Needs attention
+          </h3>
           <div className="flag-list">
             {flags.map((f) => (
               <button key={f.marker.id} className="flag-row" onClick={() => onOpenMarker(f.marker.id)}>
@@ -52,7 +62,9 @@ export default function Dashboard({ reports, onOpenMarker }) {
       )}
 
       <section>
-        <h3>Insights</h3>
+        <h3>
+          <span className="h3-icon">✨</span> Insights
+        </h3>
         {insights.length === 0 ? (
           <p className="muted">Nothing notable yet — add more reports to unlock trend insights.</p>
         ) : (

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { MARKERS } from '../catalog.js'
+import { MARKERS, markerById, statusOf } from '../catalog.js'
 import { mergeReport, parseCSV } from '../store.js'
 
 export default function AddData({ reports, setReports, done }) {
@@ -9,7 +9,10 @@ export default function AddData({ reports, setReports, done }) {
   const [rows, setRows] = useState([{ markerId: '', value: '' }])
   const [csvText, setCsvText] = useState('')
   const [feedback, setFeedback] = useState(null)
-  const fileRef = useRef(null)
+  const [busy, setBusy] = useState(false)
+  const [preview, setPreview] = useState(null) // { date, values, fileName }
+  const csvRef = useRef(null)
+  const pdfRef = useRef(null)
 
   function setRow(i, patch) {
     setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)))
@@ -46,7 +49,7 @@ export default function AddData({ reports, setReports, done }) {
     setTimeout(done, 900)
   }
 
-  function onFile(e) {
+  function onCsvFile(e) {
     const f = e.target.files?.[0]
     if (!f) return
     const reader = new FileReader()
@@ -55,14 +58,99 @@ export default function AddData({ reports, setReports, done }) {
     e.target.value = ''
   }
 
+  async function onPdfFile(e) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    setBusy(true)
+    setFeedback(null)
+    try {
+      const { extractPdfLines, parseLabLines } = await import('../pdfimport.js')
+      const lines = await extractPdfLines(f)
+      const { date: d, values } = parseLabLines(lines)
+      if (!d || Object.keys(values).length === 0) {
+        setFeedback({
+          tone: 'warn',
+          text: 'Could not read results from this PDF (it may be a scan without a text layer). Try CSV or manual entry — or send the PDF to your assistant to convert.',
+        })
+      } else {
+        setPreview({ date: d, values, fileName: f.name })
+      }
+    } catch {
+      setFeedback({ tone: 'warn', text: 'Failed to read that PDF. Try CSV or manual entry instead.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function confirmPreview() {
+    setReports(mergeReport(reports, { date: preview.date, lab: '', notes: `Imported from ${preview.fileName}`, values: preview.values }))
+    setFeedback({ tone: 'good', text: `Saved ${Object.keys(preview.values).length} values for ${preview.date}.` })
+    setPreview(null)
+    setTimeout(done, 800)
+  }
+
+  if (preview) {
+    const entries = Object.entries(preview.values)
+    return (
+      <div className="add-data">
+        <h3>📄 Review before saving</h3>
+        <p className="muted">
+          Read from <strong>{preview.fileName}</strong> — uncheck anything that looks wrong.
+        </p>
+        <label className="form-inline">
+          Test date
+          <input type="date" value={preview.date} onChange={(e) => setPreview({ ...preview, date: e.target.value })} />
+        </label>
+        <table className="history preview-table">
+          <tbody>
+            {entries.map(([id, v]) => {
+              const m = markerById(id)
+              return (
+                <tr key={id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked
+                      onChange={() => {
+                        const next = { ...preview.values }
+                        delete next[id]
+                        setPreview({ ...preview, values: next })
+                      }}
+                    />
+                  </td>
+                  <td>{m.name}</td>
+                  <td>
+                    {v} {m.unit}
+                  </td>
+                  <td>
+                    <span className={`badge ${statusOf(m, v)}`}>{statusOf(m, v)}</span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <div className="report-actions">
+          <button className="btn primary" onClick={confirmPreview} disabled={entries.length === 0}>
+            Save {entries.length} values
+          </button>
+          <button className="btn ghost" onClick={() => setPreview(null)}>
+            Discard
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="add-data">
       <div className="seg">
         <button className={mode === 'form' ? 'active' : ''} onClick={() => setMode('form')}>
-          Enter manually
+          ✏️ Manually
         </button>
-        <button className={mode === 'csv' ? 'active' : ''} onClick={() => setMode('csv')}>
-          Import CSV
+        <button className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>
+          📄 PDF / CSV
         </button>
       </div>
 
@@ -106,25 +194,34 @@ export default function AddData({ reports, setReports, done }) {
         </div>
       ) : (
         <div className="form">
+          <button className="btn primary" disabled={busy} onClick={() => pdfRef.current?.click()}>
+            {busy ? 'Reading PDF…' : '📄 Upload lab PDF'}
+          </button>
+          <input ref={pdfRef} type="file" accept=".pdf,application/pdf" hidden onChange={onPdfFile} />
           <p className="muted">
-            One row per value: <code>date,marker,value</code> — e.g.{' '}
-            <code>2024-06-10,tsh,1.71</code>. Dates can be <code>2024-06-10</code> or{' '}
-            <code>10.06.2024</code>; marker names in English or Serbian work.
+            Works with lab PDFs that contain selectable text (like MEDLAB reports). You'll review
+            every value before it's saved. Scanned photos aren't supported yet — use CSV below.
+          </p>
+          <hr className="rule" />
+          <p className="muted">
+            CSV: one row per value, <code>date,marker,value</code> — e.g.{' '}
+            <code>2024-06-10,tsh,1.71</code>. Serbian marker names and <code>10.06.2024</code> dates
+            work too.
           </p>
           <textarea
-            rows={8}
+            rows={6}
             placeholder={'date,marker,value\n2021-03-15,vitd,32\n2021-03-15,tsh,2.8'}
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
           />
           <div className="report-actions">
-            <button className="btn primary" onClick={() => importText(csvText)}>
+            <button className="btn ghost" onClick={() => importText(csvText)}>
               Import pasted text
             </button>
-            <button className="btn ghost" onClick={() => fileRef.current?.click()}>
+            <button className="btn ghost" onClick={() => csvRef.current?.click()}>
               Choose .csv file
             </button>
-            <input ref={fileRef} type="file" accept=".csv,.txt" hidden onChange={onFile} />
+            <input ref={csvRef} type="file" accept=".csv,.txt" hidden onChange={onCsvFile} />
           </div>
         </div>
       )}

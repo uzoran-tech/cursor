@@ -1,6 +1,8 @@
 import { seriesFor } from '../store.js'
-import { markerById, statusOf, rangeLabel } from '../catalog.js'
+import { markerById, statusOf, rangeLabel, PANEL_ICONS } from '../catalog.js'
+import { INFO } from '../info.js'
 import { TrendChart } from './Charts.jsx'
+import { IconClose } from './Icons.jsx'
 
 export default function MarkerDetail({ markerId, reports, onClose }) {
   const m = markerById(markerId)
@@ -21,11 +23,11 @@ export default function MarkerDetail({ markerId, reports, onClose }) {
           <div>
             <h2>{m.name}</h2>
             <span className="muted">
-              {m.panel} · reference {rangeLabel(m)} {m.unit}
+              {PANEL_ICONS[m.panel]} {m.panel} · reference {rangeLabel(m)} {m.unit}
             </span>
           </div>
-          <button className="btn ghost small" onClick={onClose}>
-            Close
+          <button className="icon-btn" title="Close" onClick={onClose}>
+            <IconClose size={18} />
           </button>
         </div>
 
@@ -55,6 +57,29 @@ export default function MarkerDetail({ markerId, reports, onClose }) {
           </div>
         </div>
 
+        {INFO[m.id] && (
+          <div className="learn">
+            <h3>
+              <span className="h3-icon">📖</span> What is {m.name}?
+            </h3>
+            <p className="learn-what">{INFO[m.id].what}</p>
+            <h3>
+              <span className="h3-icon">💡</span> Good to know
+            </h3>
+            <ul className="learn-tips">
+              {INFO[m.id].tips.map((tip, i) => (
+                <li key={i}>{tip}</li>
+              ))}
+            </ul>
+            <p className="disclaimer">
+              General education, not medical advice — always interpret results with your doctor.
+            </p>
+          </div>
+        )}
+
+        <h3>
+          <span className="h3-icon">🗓️</span> History
+        </h3>
         <table className="history">
           <thead>
             <tr>

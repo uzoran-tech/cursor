@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { sortByDate, toCSV } from '../store.js'
 import { markerById, statusOf } from '../catalog.js'
+import { IconExport, IconTrash } from './Icons.jsx'
 
 export default function Reports({ reports, setReports }) {
   const [open, setOpen] = useState(null)
@@ -29,10 +30,10 @@ export default function Reports({ reports, setReports }) {
     <div className="reports">
       <div className="report-actions">
         <button className="btn ghost small" onClick={exportCSV}>
-          Export CSV backup
+          <IconExport size={15} /> Export CSV backup
         </button>
         <button className="btn danger small" onClick={clearAll}>
-          Clear all data
+          <IconTrash size={15} /> Clear all data
         </button>
       </div>
 
@@ -77,7 +78,7 @@ export default function Reports({ reports, setReports }) {
                 </table>
                 {r.notes && <p className="muted">{r.notes}</p>}
                 <button className="btn danger small" onClick={() => remove(r.id)}>
-                  Delete report
+                  <IconTrash size={15} /> Delete report
                 </button>
               </div>
             )}

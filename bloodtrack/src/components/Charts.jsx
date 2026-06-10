@@ -28,7 +28,7 @@ export function Sparkline({ series, marker, width = 120, height = 36 }) {
   return (
     <svg width={width} height={height} className="sparkline" aria-hidden>
       {marker.lo != null && marker.hi != null && (
-        <rect x={0} y={y(marker.hi)} width={width} height={Math.max(0, y(marker.lo) - y(marker.hi))} fill="rgba(255,255,255,0.06)" />
+        <rect x={0} y={y(marker.hi)} width={width} height={Math.max(0, y(marker.lo) - y(marker.hi))} fill="var(--band)" />
       )}
       {series.length > 1 && (
         <polyline points={pts.join(' ')} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
@@ -57,21 +57,23 @@ export function TrendChart({ series, marker, width = 640, height = 260 }) {
       <rect x={pad} y={bandTop} width={width - pad * 2} height={Math.max(0, bandBottom - bandTop)} fill="rgba(52,201,142,0.10)" />
       {marker.hi != null && (
         <>
-          <line x1={pad} x2={width - pad} y1={y(marker.hi)} y2={y(marker.hi)} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4" />
+          <line x1={pad} x2={width - pad} y1={y(marker.hi)} y2={y(marker.hi)} stroke="var(--dash)" strokeDasharray="4 4" />
           <text x={width - pad} y={y(marker.hi) - 5} textAnchor="end" className="chart-label">{marker.hi}</text>
         </>
       )}
       {marker.lo != null && (
         <>
-          <line x1={pad} x2={width - pad} y1={y(marker.lo)} y2={y(marker.lo)} stroke="rgba(255,255,255,0.25)" strokeDasharray="4 4" />
+          <line x1={pad} x2={width - pad} y1={y(marker.lo)} y2={y(marker.lo)} stroke="var(--dash)" strokeDasharray="4 4" />
           <text x={width - pad} y={y(marker.lo) + 14} textAnchor="end" className="chart-label">{marker.lo}</text>
         </>
       )}
       {series.length > 1 && (
         <polyline
+          className="chart-line"
+          pathLength="1"
           points={pts.map((p) => `${p.cx.toFixed(1)},${p.cy.toFixed(1)}`).join(' ')}
           fill="none"
-          stroke="#e8554d"
+          stroke="var(--red)"
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -79,7 +81,16 @@ export function TrendChart({ series, marker, width = 640, height = 260 }) {
       )}
       {pts.map((p, i) => (
         <g key={p.date}>
-          <circle cx={p.cx} cy={p.cy} r={i === pts.length - 1 ? 5 : 3.5} fill={COLORS[statusOf(marker, p.value)]} stroke="#0f1115" strokeWidth="1.5" />
+          <circle
+            className="chart-dot"
+            style={{ animationDelay: `${0.15 + (i / pts.length) * 0.8}s` }}
+            cx={p.cx}
+            cy={p.cy}
+            r={i === pts.length - 1 ? 5 : 3.5}
+            fill={COLORS[statusOf(marker, p.value)]}
+            stroke="var(--card)"
+            strokeWidth="1.5"
+          />
           {(i === 0 || i === pts.length - 1) && (
             <text x={p.cx} y={height - 8} textAnchor={i === 0 ? 'start' : 'end'} className="chart-label">
               {p.date.slice(0, 7)}

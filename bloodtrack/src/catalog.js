@@ -64,6 +64,17 @@ export const MARKERS = [
 
 export const PANELS = [...new Set(MARKERS.map((m) => m.panel))]
 
+export const PANEL_ICONS = {
+  Hormones: '🧪',
+  'Tumor Markers': '🎗️',
+  'Vitamins & Minerals': '💊',
+  Metabolic: '⚡',
+  Lipids: '🫀',
+  'Blood Count': '🩸',
+  'Liver & Kidney': '🫘',
+  Inflammation: '🔥',
+}
+
 export const markerById = (id) => MARKERS.find((m) => m.id === id)
 
 const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
