@@ -13,7 +13,14 @@ export default function PageContent({
     const coverImg = articles[0]?.image
     return (
       <div className="pg cover">
-        {coverImg && <img className="cover-img" src={coverImg} alt="" />}
+        {coverImg && (
+          <img
+            className="cover-img"
+            src={coverImg}
+            alt=""
+            onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+          />
+        )}
         <div className="cover-scrim" />
         <div className="cover-text">
           <span className="cover-kicker">FOLIO MAGAZINE</span>
@@ -29,7 +36,11 @@ export default function PageContent({
   return (
     <div className="pg article">
       <div className="pg-media">
-        <img src={a.image} alt="" />
+        <img
+          src={a.image}
+          alt=""
+          onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+        />
       </div>
       <div className="pg-body">
         <div className="pg-meta">

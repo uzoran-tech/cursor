@@ -4,7 +4,12 @@ export default function ArticleCard({ article, variant, saved, onToggleBookmark,
   return (
     <article className={`card ${variant}`} onClick={onOpen}>
       <div className="card-media">
-        <img src={article.image} alt="" loading="lazy" />
+        <img
+          src={article.image}
+          alt=""
+          loading="lazy"
+          onError={(e) => (e.currentTarget.style.visibility = 'hidden')}
+        />
       </div>
       <div className="card-body">
         <div className="card-meta">

@@ -506,6 +506,7 @@ body {
 
 .pg.cover {
   justify-content: flex-end;
+  background: linear-gradient(160deg, #3f3f46 0%, #18181b 100%);
 }
 
 .cover-img {
